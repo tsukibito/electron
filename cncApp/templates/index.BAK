@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>CNC Controller</title>
+<link href="static/css/style.css?v=09" rel="stylesheet" type="text/css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+  function read_input_file(evt) {
+    var input_file = evt.target.files[0];
+    var reader = new FileReader();
+
+    reader.onerror = function() {
+      $('#console-out').val('ファイルの読み込みに失敗しました\n' + $('#console-out').val());
+    }
+    reader.onload = function(){
+      $.ajax({
+        type: "POST",
+        url: "/input",
+        data: {
+          "input": reader.result
+          "type": 'G'
+        },
+        success: function(res){
+        }
+      }); 
+    }
+
+    reader.readAsText(input_file);
+  }
+
+  $('#dummy-file').on('change', function(e) {
+    $('#input-file-path').val($(this)[0].files[0].name);
+    read_input_file(e);
+  });
+
+  $('#port').val($('#setting-ini-port').val());
+  $('#baud_rate').val($('#setting-ini-rate').val());
+  
+  $('.icon').each(function() {
+    $(this).click(function() {
+      var id = $(this).attr('id');
+      switch(id) {
+        case 'button-input-file' :
+          $('#dummy-file').click();
+          break;
+        case 'button-connect':
+          $.ajax({
+            type: "POST",
+            url: "/connect",
+            data: {
+              "baud_rate": $('#baud_rate').val(),
+              "port": $('#port').val(),
+              "abs_pos": $('#abs_pos').val(),
+              "el_pos": $('#el_pos').val(),
+              "mark": $('#mark').val(),
+              "speed": $('#speed').val(),
+              "acc": $('#acc').val(),
+              "dec": $('#dec').val(),
+              "max_speed": $('#max_speed').val(),
+              "min_speed": $('#min_speed').val(),
+              "kval_hold": $('#kval_hold').val(),
+              "kval_run": $('#kval_run').val(),
+              "kval_acc": $('#kval_acc').val(),
+              "kval_dec": $('#kval_dec').val(),
+              "int_spd": $('#int_spd').val(),
+              "st_slp": $('#st_slp').val(),
+              "fn_slp_acc": $('#fn_slp_acc').val(),
+              "fn_slp_dec": $('#fn_slp_dec').val(),
+              "k_therm": $('#k_therm').val(),
+              "adc_out": $('#adc_out').val(),
+              "ocd_out": $('#ocd_out').val(),
+              "stall_th": $('#stall_th').val(),
+              "fs_spd": $('#fs_spd').val(),
+              "step_mode": $('#step_mode').val(),
+              "alarm_en": $('#alarm_en').val()
+            },
+            success: function(res){
+              return_check('connect', res);
+            }
+          }); 
+          break;
+        case 'button-setpos':
+          $.ajax({
+            url: "/setpos",
+            success: function(res){
+              return_check('move', res);
+            }
+          }); 
+          break;
+        case 'button-reset':
+          motor_move(0, 0, 0, false)
+          break;
+        case 'button-move-dx':
+          motor_move(10.0, 0, 0, true)
+          break;
+        case 'button-move-x':
+          motor_move(1.0, 0, 0, true)
+          break;
+        case 'button-move-dx-rev':
+          motor_move(-10.0, 0, 0, true)
+          break;
+        case 'button-move-x-rev':
+          motor_move(-1.0, 0, 0, true)
+          break;
+        case 'button-move-dy':
+          motor_move(0, 10.0, 0, true)
+          break;
+        case 'button-move-y':
+          motor_move(0, 1.0, 0, true)
+          break;
+        case 'button-move-dy-rev':
+          motor_move(0, -10.0, 0, true)
+          break;
+        case 'button-move-y-rev':
+          motor_move(0, -1.0, 0, true)
+          break;
+        case 'button-move-dz':
+          motor_move(0, 0, 10.0, true)
+          break;
+        case 'button-move-z':
+          motor_move(0, 0, 1.0, true)
+          break;
+        case 'button-move-dz-rev':
+          motor_move(0, 0, -10.0, true)
+          break;
+        case 'button-move-z-rev':
+          motor_move(0, 0, -1.0, true)
+          break;
+        case 'button-move-to':
+          motor_move($('#pos-x').val(), $('#pos-y').val(), $('#pos-z').val(), false)
+          break;
+        case 'param-reset':
+          $('#l6470-param-default input').each(function() {
+            $('#' + $(this).attr('id').slice(8)).val($(this).val());
+          });
+          break;
+      }
+    });
+  });
+});
+
+function motor_move(x, y, z, is_def) {
+  $.ajax({
+    type: "POST",
+    url: "/move",
+    data: {
+      "x": x,
+      "y": y,
+      "z": z,
+      "is_def": is_def,
+    },
+    success: function(res){
+      return_check('move', res);
+    }
+  }); 
+}
+
+function return_check(action, res) {
+  var $xml = $($.parseHTML('<xml>' + res + '</xml>'));
+  var type = $xml.find('type').text();
+  var message = $xml.find('message').text();
+
+  if (type == 'error') {
+    message = $xml.find('code').text() + message;
+  }
+
+  var now = new Date();
+  var d = '[' + now.getFullYear() + '/' 
+    + ('0'+now.getMonth()).slice(-2) + '/' 
+    + ('0'+now.getDay()).slice(-2) + ' ' 
+    + ('0'+now.getHours()).slice(-2) + ":" 
+    + ('0'+now.getMinutes()).slice(-2) + ":" 
+    + ('0'+now.getSeconds()).slice(-2) + '] '
+  
+  $('#console-out').val(d + message + '\n' + $('#console-out').val());
+
+  if (type == 'normal' && action == 'move') {
+    var pos_x = $xml.find('pos_x').text();
+    var pos_y = $xml.find('pos_y').text();
+    var pos_z = $xml.find('pos_z').text();
+
+    $('#pos-x').val((pos_x + '000').slice(0,String(pos_x).indexOf('.')+4));
+    $('#pos-y').val((pos_y + '000').slice(0,String(pos_y).indexOf('.')+4));
+    $('#pos-z').val((pos_z + '000').slice(0,String(pos_z).indexOf('.')+4));
+  }
+}
+
+</script>
+</head>
+<body>
+<form id="setting-form" name="setting-form" method="post">
+  <div id="content-left">
+    <div id="input-file-area">
+      <div class="caption">入力ファイル／プレビュー</div>
+      <input type="file" id="dummy-file" style="display:none;">
+      <img class="icon" id="button-input-file" src="static/icon/add.png" width="24" height="24"/>
+      <input id="input-file-path" type="text" value="" readonly>
+      <img class="icon" id="button-layer-down" src="static/icon/layer_down.png" width="16" height="16"/>
+      <input id="input-layer" type="text" value="" readonly>
+      <img class="icon" id="button-layer-up" src="static/icon/layer_up.png" width="16" height="16"/>
+    </div>
+    <div id="canvas-area">
+      <svg id="canvas" x="0px" y="0px"></svg>
+    </div>
+  </div>
+  <div id="content-right">
+    <div id="main-control-area">
+      <div class="caption">メインコントロール</div>
+      <div id="main-control-icon" class="center">
+        <img class="icon" id="button-connect" src="static/icon/power.png" width="32" height="32"/>
+        <img class="icon" id="button-reset" src="static/icon/reset.png" width="32" height="32"/>
+        <img class="icon" id="button-setpos" src="static/icon/setpos.png" width="32" height="32"/>
+        &nbsp;
+        <img class="icon" id="button-exec" src="static/icon/exec.png" width="32" height="32"/>
+        <img class="icon" id="button-pause" src="static/icon/pause.png" width="32" height="32"/>
+      </div>
+    </div>
+    <div id="mortor-control-area">
+      <div class="caption">座標コントロール</div>
+      <div id="mortor-pos">
+      <div class="sub-caption">座標軸／移動</div>
+      <table>
+  <tbody>
+<tr>
+  <td valign="middle">X軸<input type="text" id="pos-x" value="{{x}}"></td>
+  <td rowspan="3" valign="middle"><img class="icon" id="button-move-to" src="static/icon/arrow_move.png" width="22" height="38"/></td>
+  </tr>
+<tr>
+  <td valign="middle">Y軸<input type="text" id="pos-y" value="{{y}}"></td>
+  </tr>
+<tr>
+  <td valign="middle">Z軸<input type="text" id="pos-z" value="{{z}}"></td>
+  </tr>
+</tbody>
+</table>
+      </div>
+      <div id="mortor-control-xy">
+      <div class="sub-caption">XY移動</div>
+      <table>
+  <tbody>
+<tr>
+  <td>&nbsp;</td><td>&nbsp;</td><td><img class="icon" id="button-move-dy" src="static/icon/control_double_up.png" width="24" height="24"/></td><td>&nbsp;</td><td>&nbsp;</td>
+  </tr>
+<tr>
+  <td>&nbsp;</td><td>&nbsp;</td><td><img class="icon" id="button-move-y" src="static/icon/control_up.png" width="24" height="24"/></td><td>&nbsp;</td><td>&nbsp;</td>
+  </tr>
+<tr>
+  <td><img class="icon" id="button-move-dx-rev" src="static/icon/control_double_left.png" width="24" height="24"/></td><td><img class="icon" id="button-move-x-rev" src="static/icon/control_left.png" width="24" height="24"/></td><td>&nbsp;</td><td><img class="icon" id="button-move-x" src="static/icon/control_right.png" width="24" height="24"/></td><td><img class="icon" id="button-move-dx" src="static/icon/control_double_right.png" width="24" height="24"/></td>
+  </tr>
+<tr>
+  <td>&nbsp;</td><td>&nbsp;</td><td><img class="icon" id="button-move-y-rev" src="static/icon/control_down.png" width="24" height="24"/></td><td>&nbsp;</td><td>&nbsp;</td>
+  </tr>
+<tr>
+  <td>&nbsp;</td><td>&nbsp;</td><td><img class="icon" id="button-move-dy-rev" src="static/icon/control_double_down.png" width="24" height="24"/></td><td>&nbsp;</td><td>&nbsp;</td>
+  </tr>
+</tbody>
+</table>
+      </div>
+      <div id="mortor-control-z">
+      <div class="sub-caption">Z移動</div>
+      <table>
+  <tbody>
+<tr>
+  <td><img class="icon" id="button-move-dz" src="static/icon/control_double_top_right.png" width="24" height="24"/></td></tr>
+<tr>
+  <td><img class="icon" id="button-move-z" src="static/icon/control_top_right.png" width="24" height="24"/></td></tr>
+<tr>
+  <td>&nbsp;</td></tr>
+<tr>
+  <td><img class="icon" id="button-move-z-rev" src="static/icon/control_bottom_left.png" width="24" height="24"/></td></tr>
+<tr>
+  <td><img class="icon" id="button-move-dz-rev" src="static/icon/control_double_bottom_left.png" width="24" height="24"/></td></tr>
+</tbody>
+</table>
+      </div>
+      <div class="clearfix">&nbsp;</div>
+    </div>
+    <div id="param-area">
+      <div class="caption">パラメータ情報</div>
+      <span>≪ シリアル通信 (Arduino) ≫</span>
+      <div id="serial-param">
+        <span>ポート番号</span>
+        <input type="hidden" id="setting-ini-port" value="{{port}}">
+        <select id="port">
+          <option value="2">COM2</option>
+          <option value="3">COM3</option>
+          <option value="4">COM4</option>
+          <option value="5">COM5</option>
+          <option value="6">COM6</option>
+          <option value="7">COM7</option>
+          <option value="8">COM8</option>
+          <option value="9">COM9</option>
+          <option value="10">COM10</option>
+        </select>
+        <span>ボーレイト</span>
+        <input type="hidden" id="setting-ini-rate" value="{{rate}}">
+        <select id="baud_rate">
+          <option value="300">300 bps</option>
+          <option value="1200">1200 bps</option>
+          <option value="2400" >2400 bps</option>
+          <option value="4800">4800 bps</option>
+          <option value="9600">9600 bps</option>
+          <option value="19200">19200 bps</option>
+          <option value="38400">38400 bps</option>
+          <option value="57600">57600 bps</option>
+          <option value="115200">115200 bps</option>
+        </select>
+      </div>
+      <div class="clearfix">&nbsp;</div>
+      <span>≪ L6470 ≫</span>
+      <img class="icon" id="param-reset" src="static/icon/reset.png" width="14" height="14"/>
+      <div id="l6470-param-default">
+        <input type="hidden" id='default-abs_pos' value="{{abs_pos}}">
+        <input type="hidden" id='default-el_pos' value="{{el_pos}}">
+        <input type="hidden" id='default-mark' value="{{mark}}">
+        <input type="hidden" id='default-speed' value="{{speed}}">
+        <input type="hidden" id='default-acc' value="{{acc}}">
+        <input type="hidden" id='default-dec' value="{{dec}}">
+        <input type="hidden" id='default-max_speed' value="{{max_speed}}">
+        <input type="hidden" id='default-min_speed' value="{{min_speed}}">
+        <input type="hidden" id='default-kval_hold' value="{{kval_hold}}">
+        <input type="hidden" id='default-kval_run' value="{{kval_run}}">
+        <input type="hidden" id='default-kval_acc' value="{{kval_acc}}">
+        <input type="hidden" id='default-kval_dec' value="{{kval_dec}}">
+        <input type="hidden" id='default-int_spd' value="{{int_spd}}">
+        <input type="hidden" id='default-sl_slp' value="{{st_slp}}">
+        <input type="hidden" id='default-fn_slp_acc' value="{{fn_slp_acc}}">
+        <input type="hidden" id='default-fn_slp_dec' value="{{fn_slp_dec}}">
+        <input type="hidden" id='default-k_therm' value="{{k_therm}}">
+        <input type="hidden" id='default-adc_out' value="{{adc_out}}">
+        <input type="hidden" id='default-ocd_out' value="{{ocd_out}}">
+        <input type="hidden" id='default-stall_th' value="{{stall_th}}">
+        <input type="hidden" id='default-fs_spd' value="{{fs_spd}}">
+        <input type="hidden" id='default-step_mode' value="{{step_mode}}">
+        <input type="hidden" id='default-alarm_en' value="{{alarm_en}}">
+      </div>
+      <div id="l6470-param">
+        <span>ABS_POS</span><input type="text" id='abs_pos' value="{{abs_pos}}" disabled>
+        <span>EL_POS</span><input type="text" id='el_pos' value="{{el_pos}}" disabled><br />
+        <span>MARK</span><input type="text" id='mark' value="{{mark}}" disabled>
+        <span>SPEED</span><input type="text" id='speed' value="{{speed}}" disabled><br />
+        <span>ACC</span><input type="text" id='acc' value="{{acc}}">
+        <span>DEC</span><input type="text" id='dec' value="{{dec}}"><br />
+        <span>MAX_SPEED</span><input type="text" id='max_speed' value="{{max_speed}}">
+        <span>MIN_SPEED</span><input type="text" id='min_speed' value="{{min_speed}}"><br />
+        <span>KVAL_HOLD</span><input type="text" id='kval_hold' value="{{kval_hold}}">
+        <span>KVAL_RUN</span><input type="text" id='kval_run' value="{{kval_run}}"><br />
+        <span>KVAL_ACC</span><input type="text" id='kval_acc' value="{{kval_acc}}">
+        <span>KVAL_DEC</span><input type="text" id='kval_dec' value="{{kval_dec}}"><br />
+        <span>INT_SPD</span><input type="text" id='int_spd' value="{{int_spd}}">
+        <span>ST_SLP</span><input type="text" id='sl_slp' value="{{st_slp}}"><br />
+        <span>FN_SLP_ACC</span><input type="text" id='fn_slp_acc' value="{{fn_slp_acc}}">
+        <span>FN_SLP_DEC</span><input type="text" id='fn_slp_dec' value="{{fn_slp_dec}}"><br />
+        <span>K_THERM</span><input type="text" id='k_therm' value="{{k_therm}}">
+        <span>ADC_OUT</span><input type="text" id='adc_out' value="{{adc_out}}" disabled><br />
+        <span>OCD_OUT</span><input type="text" id='ocd_out' value="{{ocd_out}}">
+        <span>STALL_TH</span><input type="text" id='stall_th' value="{{stall_th}}"><br />
+        <span>FS_SPD</span><input type="text" id='fs_spd' value="{{fs_spd}}">
+        <span>STEP_MODE</span><input type="text" id='step_mode' value="{{step_mode}}"><br />
+        <span>ALARM_EN</span><input type="text" id='alarm_en' value="{{alarm_en}}">
+      </div>
+    </div>
+  </div>
+  <div id="console-area" class="clearfix">
+    <div class="caption">コンソール情報</div>
+    <textarea id="console-out"></textarea>
+  </div>
+</form>
+</body>
+</html>

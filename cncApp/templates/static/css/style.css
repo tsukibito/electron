@@ -1,0 +1,256 @@
+﻿html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, dialog, figure, footer, header,
+hgroup, menu, nav, section,
+time, mark, audio, video {
+	margin:0;
+	padding:0;
+	border:0;
+	outline:0;
+}
+html {
+	height: 100%;
+    width: 100%;
+    font-size: 62.5%;
+}
+body {
+	line-height: 1;
+	font-family: 'Hiragino Kaku Gothic ProN', 'ヒラギノ角ゴ ProN W3', Meiryo, メイリオ, Osaka, 'MS PGothic', arial, helvetica, sans-serif;
+	font-size: 1.0em;
+}
+
+h4 span {
+	padding: 5px;
+}
+h4 {
+	background-color: #ccc;
+	width: 100%;
+	line-height: 1.8em;
+	text-align: center;
+	margin-top: 10px;
+}
+h4.sub-container {
+	background-color: #eee;
+	cursor:pointer;
+}
+
+fieldset {
+	border:1px solid #666;
+	padding: 5px;
+}
+legend {
+	padding: 5px;
+	margin-left: 10px;
+}
+
+input, select {
+}
+
+article, aside, dialog, figure, footer, header,
+hgroup, nav, section {
+	display:block;
+}
+
+nav ul {
+	list-style:none;
+}
+
+blockquote, q {
+	quotes:none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content:'';
+	content:none;
+}
+
+a {
+	margin:0;
+	padding:0;
+	border:0;
+	font-size:100%;
+	vertical-align:baseline;
+	background:transparent;
+}
+
+ins {
+	background-color:#ff9;
+	color:#000;
+	text-decoration:none;
+}
+
+mark {
+	background-color:#ff9;
+	color:#000;
+	font-style:italic;
+	font-weight:bold;
+}
+
+del {
+	text-decoration: line-through;
+}
+
+abbr[title], dfn[title] {
+	border-bottom:1px dotted #000;
+	cursor:help;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	border: 0;
+}
+
+hr {
+    display:block;
+    height:1px;
+    border:0;
+    border-top:1px solid #cccccc;
+    margin:1em 0;
+    padding:0;
+}
+
+input, select {
+	vertical-align: middle;
+	margin: 1px 5px;
+}
+input {
+	width: 100px;
+    font-size: 14px;
+}
+select {
+	min-width: 100px;
+}
+
+.center {
+	text-align: center;
+}
+
+#controller-inf {
+	padding: 5px;
+}
+#l6470-inf span {
+	display: inline-block;
+	width: 100px;
+	margin: auto 5px;
+}
+
+#content-left, #content-right {
+	margin: 5px;
+	float: left;
+}
+
+#content-left {
+}
+
+#input-file-area, #canvas-area {
+	clear: both;
+	width: 600px;
+	margin: 2px;
+}
+
+#content-right {
+}
+
+#input-file-path {
+	width: 555px;
+	vertical-align: top;
+}
+
+#canvas {
+	width: 595px;
+	height: 595px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+#main-control-area, #mortor-control-area, #param-area {
+	clear: both;
+	width: 400px;
+	margin: 2px;
+}
+
+#main-control-area {
+}
+
+#mortor-control-area {
+}
+
+#mortor-pos, #mortor-control-xy, #mortor-control-z {
+	border: thin solid #ccc;
+	float: left;
+	margin-left: 10px;
+	border-top-right-radius: 8px;
+}
+
+#mortor-pos table, #mortor-control-xy table, #mortor-control-z table {
+	margin: 6px;
+}
+.caption {
+	width: 100%;
+	line-height: 18px;
+	background-color: #eee;
+	text-align: center;
+	border-left: 4px solid #666;
+	margin-bottom: 5px;
+}
+.sub-caption {
+	width: 100%;
+	line-height: 18px;
+	background-color: #efe;
+	text-align: center;
+	border-top-right-radius: 8px;
+}
+
+#mortor-pos {
+	margin-top: 28px;
+}
+#mortor-control-xy {
+	margin-top: 4px;
+}
+#mortor-control-z {
+	margin-top: 12px;
+}
+
+#param-area {
+}
+
+#serial-param span, #l6470-param span {
+	display: inline-block;
+	width: 60px;
+	margin: auto 5px;
+	padding-left: 10px;
+}
+
+#console-area {
+	width: 1000px;
+	height: auto;
+	margin: 5px;
+}
+
+#console-out {
+	width: 100%;
+	height: 80px;
+}
+
+.clearfix {
+	clear: both;
+	height: 5px;
+}
+
+.icon {
+	border: thin solid #ccc;
+	border-radius: 4px;
+	margin: 1px;
+	background-color: #efe;
+	cursor: pointer;
+	vertical-align: middle;
+}
